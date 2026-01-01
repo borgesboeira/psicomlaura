@@ -1,25 +1,28 @@
 @import "tailwindcss";
-@import "tailwindcss";
 @import "react-big-calendar/lib/css/react-big-calendar.css";
 
 /* ====== Tema “club retrô fofo” ====== */
 :root{
-  --bg:#FFFAED;
+  /* fundo e texto (texto preto permanece) */
+  --bg:#FAF5E4;
   --text:#2C2C34;
 
-  --coral:#FF7D59;
-  --periwinkle:#99B0ED;
-  --olive:#D1D161;
+  /* NOVA PALETA */
+  --butter:#DCBA4E;       /* dourado */
+  --coral:#E2A27A;        /* pêssego */
+  --pink:#E5ACA8;         /* rosa antigo */
+  --olive:#B3C987;        /* sálvia */
+  --periwinkle:#99D1BD;   /* menta */
 
-  --pink:#FFBDE8;
-  --peach-100:#FFE5E0;
-  --salmon:#FAAB94;
-  --butter:#FFDE94;
-  --blue-100:#CDDBF9;
-  --rose-100:#FFDEEA;
+  /* “tints” (versões clarinhas pras superfícies) */
+  --peach-100:#F8E8DE;
+  --salmon:#E2A27A;
+  --blue-100:#E6F4EE;
+  --rose-100:#F8EAE9;
 
   --ring: rgba(44,44,52,.18);
 }
+
 
 @layer base{
   html, body { height: 100%; }
@@ -55,6 +58,15 @@
     border: 2px solid rgba(44,44,52,.12);
   }
 
+  .btn-primary{
+    background: var(--coral);
+    color: white;
+  }
+
+  .btn-secondary{
+    background: white;
+  }
+
   .chip{
     display: inline-flex;
     align-items: center;
@@ -65,4 +77,240 @@
     border: 2px solid rgba(44,44,52,.10);
     background: white;
   }
+
+  .surface{
+    position: relative; /* 👈 necessário pro ::after */
+    background: var(--surface, white);
+    background: color-mix(in srgb, var(--surface, white) 85%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .surface::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius: inherit;
+    pointer-events:none;
+    background:
+      radial-gradient(600px 240px at 20% 0%, rgba(255,255,255,.55), transparent 60%),
+      radial-gradient(520px 260px at 90% 15%, rgba(255,255,255,.35), transparent 60%);
+    opacity: .55;
+    mix-blend-mode: soft-light;
+  }
+}
+
+/* ===== Orbs: loop contínuo subindo ===== */
+
+/* camada do fundo (atrás de tudo) */
+.orbs-layer{
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* animação: nasce embaixo, sobe, some e reinicia */
+@keyframes orbRise {
+  0%   { transform: translate3d(0, 0, 0) scale(1); opacity: 0; }
+  10%  { opacity: var(--alpha, .55); }
+  50%  { transform: translate3d(var(--drift1, 24px), -110vh, 0) scale(1.06); opacity: var(--alpha, .55); }
+  90%  { opacity: var(--alpha, .55); }
+  100% { transform: translate3d(var(--drift2, -18px), -220vh, 0) scale(1); opacity: 0; }
+}
+
+/* bolha base */
+.orb{
+  position: absolute;
+  top: 110vh;                 /* começa fora da tela (embaixo) */
+  left: var(--left, 0px);
+  width: var(--size, 340px);
+  height: var(--size, 340px);
+  border-radius: 9999px;
+  background: var(--color, var(--periwinkle));
+  filter: blur(var(--blur, 28px));
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: orbRise var(--dur, 25s) linear infinite;
+  animation-delay: var(--delay, 0s);
+  transform: translate3d(0,0,0);
+}
+
+/* variações */
+.orb1{
+  --size: 380px;
+  --left: -140px;
+  --color: var(--periwinkle);
+  --dur: 18s;
+  --delay: -2s;
+  --alpha: .45;
+  --blur: 34px;
+  --drift1: 22px;
+  --drift2: -14px;
+}
+
+.orb2{
+  --size: 320px;
+  --left: 65%;
+  --color: var(--butter);
+  --dur: 22s;
+  --delay: -10s;
+  --alpha: .42;
+  --blur: 30px;
+  --drift1: -26px;
+  --drift2: 18px;
+}
+
+.orb3{
+  --size: 420px;
+  --left: 18%;
+  --color: var(--pink);
+  --dur: 26s;
+  --delay: -16s;
+  --alpha: .40;
+  --blur: 36px;
+  --drift1: 30px;
+  --drift2: -24px;
+}
+
+/* acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  .orb { animation: none; opacity: .20; top: 10vh; }
+}
+
+/* ===== Home: texto escrito + flecha desenhada + rotator ===== */
+
+.fade-in {
+  animation: fadeIn 420ms ease;
+}
+.fade-in{ animation: fadeIn 700ms ease both; }
+
+@keyframes fadeIn{
+  from{ opacity: 0; transform: scale(0.995); }
+  to{ opacity: 1; transform: scale(1); }
+}
+
+
+/* ===== CTA no meio (texto + flecha + botão) ===== */
+
+.cta-typing{
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-52%, -56%); /* levemente p/ cima e esquerda */
+  z-index: 30;
+  pointer-events: none;
+}
+
+/* “aparece” suavemente quando começa */
+.cta-appear{
+  animation: ctaAppear 250ms ease both;
+}
+@keyframes ctaAppear{
+  from{ opacity: 0; transform: translate(-52%, -56%) scale(.99); }
+  to{ opacity: 1; transform: translate(-52%, -56%) scale(1); }
+}
+
+/* palco: onde posicionamos tudo */
+.cta-stage{
+  position: relative;
+  width: min(720px, 86vw);
+  height: 320px;
+}
+
+/* texto “mão” no topo-esquerda da cena */
+.handwrite{
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: var(--font-script);
+  font-size: clamp(32px, 3.2vw, 46px);
+  line-height: 1.05;
+  color: var(--text);
+}
+
+/* botão no canto inferior-direito do palco */
+.cta-pill{
+  pointer-events: auto;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border-radius: 9999px;
+  border: 2px solid rgba(44,44,52,.12);
+  background: rgba(255,255,255,.90);
+  backdrop-filter: blur(8px);
+  font-weight: 700;
+}
+
+/* flecha grande e charmosa ocupando o palco */
+.hand-arrow{
+  position: absolute;
+  left: 40px;
+  top: 40px;
+  width: min(640px, 86vw);
+  height: auto;
+  color: rgba(44,44,52,.65);
+  pointer-events: none;
+}
+
+/* desenhar como se fosse “traço” */
+.hand-arrow-path{
+  stroke-dasharray: 1400;
+  stroke-dashoffset: 1400;
+  animation: drawArrow 1.3s ease forwards;
+  animation-delay: .15s;
+}
+
+@keyframes drawArrow{
+  to{ stroke-dashoffset: 0; }
+}
+
+/* caret */
+.caret{
+  display: inline-block;
+  width: 10px;
+  height: 1.1em;
+  margin-left: 4px;
+  border-radius: 999px;
+  background: rgba(44,44,52,.55);
+  animation: caretBlink .9s steps(1) infinite;
+  transform: translateY(4px);
+}
+@keyframes caretBlink{ 50% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce){
+  .hand-arrow-path{ animation: none; stroke-dashoffset: 0; }
+  .caret{ animation: none; }
+  .cta-appear{ animation: none; }
+}
+
+/* ===== Rotator (imagem alternando) ===== */
+.rotator-pos{
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 20;
+  pointer-events: none; /* não atrapalha cliques */
+}
+
+.rotator-wrap{
+  position: relative;
+  width: min(520px, 52vw);
+  height: min(520px, 52vw);
+
+  /* “mais distante” = menor + leve transparência */
+  transform: scale(2.50);
+  opacity: 0.55;
+
+  filter: drop-shadow(0 24px 40px rgba(0,0,0,.10));
+}
+
+.rotator-img{
+  object-fit: contain;
 }

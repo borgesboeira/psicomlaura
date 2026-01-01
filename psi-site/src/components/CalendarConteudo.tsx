@@ -32,12 +32,26 @@ function toDateInputValue(d: Date) {
   )}:${pad(d.getMinutes())}`;
 }
 
+type Task = { id: string; text: string; done: boolean };
+
+const LS_NOTES_KEY = "psi_conteudos_notes";
+const LS_TASKS_KEY = "psi_conteudos_tasks";
+
+
 export default function CalendarConteudo() {
   const { data, upsertContentItem, deleteContentItem } = useData();
   const [view, setView] = useState<View>("month");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<ContentItem | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
+
+    // ===== Notas / Tarefas (salvas) =====
+  const [openNotes, setOpenNotes] = useState(false);
+  const [tab, setTab] = useState<"notes" | "tasks">("notes");
+
+  const [notes, setNotes] = useState("");
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [taskText, setTaskText] = useState("");
 
 useEffect(() => {
   function onKeyDown(e: KeyboardEvent) {
@@ -71,6 +85,32 @@ useEffect(() => {
       e.preventDefault();
       setView("agenda");
     }
+
+      // Carrega do localStorage quando abre a página
+  useEffect(() => {
+    try {
+      const n = localStorage.getItem(LS_NOTES_KEY);
+      if (n) setNotes(n);
+
+      const t = localStorage.getItem(LS_TASKS_KEY);
+      if (t) setTasks(JSON.parse(t));
+    } catch {}
+  }, []);
+
+  // Salva notas sempre que mudar
+  useEffect(() => {
+    try {
+      localStorage.setItem(LS_NOTES_KEY, notes);
+    } catch {}
+  }, [notes]);
+
+  // Salva tarefas sempre que mudar
+  useEffect(() => {
+    try {
+      localStorage.setItem(LS_TASKS_KEY, JSON.stringify(tasks));
+    } catch {}
+  }, [tasks]);
+
   }
 
   window.addEventListener("keydown", onKeyDown, { passive: false });
@@ -106,6 +146,26 @@ useEffect(() => {
     upsertContentItem(editing);
     setOpen(false);
   }
+
+  function addTask() {
+    const text = taskText.trim();
+    if (!text) return;
+    setTasks((prev) => [{ id: makeId("tsk"), text, done: false }, ...prev]);
+    setTaskText("");
+  }
+
+  function toggleTask(id: string) {
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+  }
+
+  function removeTask(id: string) {
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+  }
+
+  function clearDone() {
+    setTasks((prev) => prev.filter((t) => !t.done));
+  }
+
 
 const RBCToolbar = (props: any) => {
   const { label, onNavigate } = props;
@@ -196,20 +256,37 @@ const ViewDock = () => {
     className="outline-none"
   >
       <div className="rounded-3xl sticker bg-(--blue-100) p-5">
-        <h1 className="font-(--font-display) text-2xl">
-          Calendário de Conteúdos
-        </h1>
-        <p className="text-sm text-black/60 mt-1">
-          Planejamento editorial (Instagram/TikTok etc.) com visão M/S/D.
-        </p>
-      </div>
+  <div className="flex items-start justify-between gap-3">
+    <div>
+      <h1 className="font-(--font-display) text-2xl">
+        Calendário de Conteúdos
+      </h1>
+      <p className="text-sm text-black/60 mt-1">
+        Planejamento editorial (Instagram/TikTok etc.) com visão M/S/D/A.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      className="chip w-10 h-10 grid place-items-center"
+      title="Notas / Tarefas"
+      aria-label="Notas / Tarefas"
+      onClick={() => setOpenNotes(true)}
+    >
+      📝
+    </button>
+  </div>
+</div>
 
       <div className="mt-3 sticker rounded-3xl bg-white p-3">
         <Calendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
+  culture="pt-BR"
+  step={30}
+  timeslots={1}
+  localizer={localizer}
+  events={events}
+  startAccessor="start"
+  endAccessor="end"
           style={{ height: 650 }}
           view={view}
 onView={(v) => setView(v)}
@@ -237,6 +314,113 @@ components={{ toolbar: RBCToolbar }}
 
         />
       </div>
+
+<Modal
+  open={openNotes}
+  title="Notas e Tarefas (Conteúdos)"
+  onClose={() => setOpenNotes(false)}
+>
+  <div className="flex gap-2 mb-3">
+    <button
+      type="button"
+      className={`px-4 py-2 rounded-full border-2 text-sm font-semibold transition ${
+        tab === "notes"
+          ? "bg-(--coral) text-white border-black/10"
+          : "bg-white border-black/10"
+      }`}
+      onClick={() => setTab("notes")}
+    >
+      Notas
+    </button>
+
+    <button
+      type="button"
+      className={`px-4 py-2 rounded-full border-2 text-sm font-semibold transition ${
+        tab === "tasks"
+          ? "bg-(--coral) text-white border-black/10"
+          : "bg-white border-black/10"
+      }`}
+      onClick={() => setTab("tasks")}
+    >
+      Tarefas
+    </button>
+
+    {tab === "tasks" && (
+      <button
+        type="button"
+        className="ml-auto px-4 py-2 rounded-full border-2 text-sm font-semibold transition bg-white border-black/10"
+        onClick={clearDone}
+      >
+        Limpar concluídas
+      </button>
+    )}
+  </div>
+
+  {tab === "notes" ? (
+    <div className="space-y-2">
+      <label className="text-sm font-semibold">Bloco de notas</label>
+      <textarea
+        className="w-full rounded-2xl border-2 border-black/10 p-3 min-h-55"
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        placeholder="Escreva aqui… (fica salvo neste navegador)"
+      />
+      <p className="text-xs opacity-70">
+        Salvo automaticamente neste navegador (localStorage).
+      </p>
+    </div>
+  ) : (
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        <input
+          className="w-full rounded-2xl border-2 border-black/10 px-3 py-2"
+          value={taskText}
+          onChange={(e) => setTaskText(e.target.value)}
+          placeholder="Nova tarefa…"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") addTask();
+          }}
+        />
+        <button
+          type="button"
+          className="px-4 py-2 rounded-full border-2 text-sm font-semibold transition bg-(--coral) text-white border-black/10"
+          onClick={addTask}
+        >
+          Adicionar
+        </button>
+      </div>
+
+      <div className="space-y-2">
+        {tasks.length === 0 ? (
+          <p className="text-sm opacity-70">Sem tarefas ainda.</p>
+        ) : (
+          tasks.map((t) => (
+            <div key={t.id} className="sticker bg-white px-4 py-3 flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={t.done}
+                onChange={() => toggleTask(t.id)}
+                className="w-5 h-5"
+              />
+              <div className={`flex-1 ${t.done ? "line-through opacity-60" : ""}`}>
+                {t.text}
+              </div>
+              <button
+                type="button"
+                className="px-3 py-1 rounded-full border-2 text-sm font-semibold bg-white border-black/10"
+                onClick={() => removeTask(t.id)}
+                aria-label="Excluir tarefa"
+                title="Excluir tarefa"
+              >
+                ✕
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )}
+</Modal>
 
 <ViewDock />
 
@@ -292,6 +476,7 @@ components={{ toolbar: RBCToolbar }}
                 <input
                   className="mt-1 w-full rounded-xl border px-3 py-2"
                   type="datetime-local"
+  step={1800}  // 1800s = 30 min
                   value={toDateInputValue(new Date(editing.inicioISO))}
                   onChange={(e) =>
                     setEditing({
