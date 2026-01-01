@@ -1,0 +1,68 @@
+@import "tailwindcss";
+@import "tailwindcss";
+@import "react-big-calendar/lib/css/react-big-calendar.css";
+
+/* ====== Tema “club retrô fofo” ====== */
+:root{
+  --bg:#FFFAED;
+  --text:#2C2C34;
+
+  --coral:#FF7D59;
+  --periwinkle:#99B0ED;
+  --olive:#D1D161;
+
+  --pink:#FFBDE8;
+  --peach-100:#FFE5E0;
+  --salmon:#FAAB94;
+  --butter:#FFDE94;
+  --blue-100:#CDDBF9;
+  --rose-100:#FFDEEA;
+
+  --ring: rgba(44,44,52,.18);
+}
+
+@layer base{
+  html, body { height: 100%; }
+  body{
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  /* Esse é o “truque” que mata link azul sublinhado */
+  a { color: inherit; text-decoration: none; }
+
+  /* Tipografia base */
+  h1,h2,h3{ letter-spacing:-0.02em; }
+}
+
+/* Componentes utilitários bonitos (sticker vibes) */
+@layer components{
+  .sticker{
+    border-radius: 1.75rem;
+    border: 2px solid rgba(44,44,52,.10);
+    box-shadow: 0 10px 0 rgba(44,44,52,.06);
+  }
+
+  .btn{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    border-radius: 9999px;
+    padding: .5rem 1.25rem;
+    font-weight: 600;
+    transition: 150ms;
+    border: 2px solid rgba(44,44,52,.12);
+  }
+
+  .chip{
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    padding: .25rem .75rem;
+    font-size: .75rem;
+    font-weight: 600;
+    border: 2px solid rgba(44,44,52,.10);
+    background: white;
+  }
+}
