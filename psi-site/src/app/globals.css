@@ -288,7 +288,7 @@
   .hand-arrow-path{ animation: none; stroke-dashoffset: 0; }
   .caret{ animation: none; }
   .cta-appear{ animation: none; }
-}
+}  /* <-- ESTE é o } que você apagou */
 
 /* ===== Rotator (imagem alternando) ===== */
 .rotator-pos{
@@ -296,7 +296,7 @@
   right: 24px;
   bottom: 24px;
   z-index: 20;
-  pointer-events: none; /* não atrapalha cliques */
+  pointer-events: none;
 }
 
 .rotator-wrap{
