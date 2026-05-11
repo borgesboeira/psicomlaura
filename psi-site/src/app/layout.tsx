@@ -1,36 +1,17 @@
-﻿import type { Metadata } from "next";
-import "./globals.css";
-import { Fraunces, Quicksand, Caveat } from "next/font/google";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import AppShell from "@/components/AppShell";
+import { AUTH_COOKIE } from "@/lib/auth";
+import { DataProvider } from "@/lib/data";
 
-const display = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-display",
-  weight: ["600", "800"],
-});
+export default async function Layout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const ok = cookieStore.get(AUTH_COOKIE)?.value === "1";
+  if (!ok) redirect("/login");
 
-const sans = Quicksand({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  weight: ["400", "600", "700"],
-});
-
-const script = Caveat({
-  subsets: ["latin"],
-  variable: "--font-script",
-  weight: ["500", "700"],
-});
-
-export const metadata: Metadata = {
-  title: "Psi • Maria Laura",
-  description: "Cuidado emocional com leveza, ciência e acolhimento.",
-};
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
-      <body className={`${display.variable} ${sans.variable} ${script.variable} antialiased`}>
-        {children}
-      </body>
-    </html>
+    <DataProvider>
+      <AppShell>{children}</AppShell>
+    </DataProvider>
   );
 }
